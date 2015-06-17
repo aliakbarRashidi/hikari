@@ -7,7 +7,7 @@ TEST_CASE("BitArray constructs correct size array", "[bit_array]") {
   long num_bits = 51028;
   BitArray bit_array (num_bits);
   int expected_capacity = ceil(num_bits / (sizeof(long) * 8.0));
-  REQUIRE(bit_array.get_capacity() == expected_capacity);
+  REQUIRE(bit_array.long_capacity() == expected_capacity);
 }
 
 TEST_CASE("BitArray::append appends when it can fit in 1 long", "[bit_array]") {
@@ -34,7 +34,7 @@ TEST_CASE("BitArray resizes when necessary", "[bit_array]") {
   bit_array.append(138, sizeof(long) * BITS_IN_BYTE);
   bit_array.append(4552, sizeof(long) * BITS_IN_BYTE);
   bit_array.append(789, sizeof(long) * BITS_IN_BYTE);
-  REQUIRE(bit_array.get_capacity() > 2);
+  REQUIRE(bit_array.long_capacity() > 2);
 }
 
 TEST_CASE("BitArray::shrink_to_fit shrinks to minimum capacity necessary",
@@ -44,5 +44,5 @@ TEST_CASE("BitArray::shrink_to_fit shrinks to minimum capacity necessary",
   bit_array.append(4552, sizeof(long) * BITS_IN_BYTE);
   bit_array.append(789, sizeof(long) * BITS_IN_BYTE);
   bit_array.shrink_to_fit();
-  REQUIRE(bit_array.get_capacity() == 3);
+  REQUIRE(bit_array.long_capacity() == 3);
 }

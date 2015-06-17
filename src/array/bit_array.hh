@@ -2,8 +2,8 @@
 #define ARRAY_BIT_ARRAY_H
 
 class BitArray {
-  int capacity;
-  long last_set_bit_ind;
+  long arr_long_capacity;
+  long last_set_bit_ind = -1;
   unsigned long* bits;
   int bit_ind_to_long_ind(long);
   int bit_offset(long);
@@ -11,7 +11,9 @@ class BitArray {
   public:
     BitArray (long);
     ~BitArray();
-    int get_capacity();
+    long long_capacity();
+    long bit_capacity();
+    long size();
     void append(long, int);
     unsigned long get(long, int);
     void shrink_to_fit();

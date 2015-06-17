@@ -1,5 +1,5 @@
 CC=g++
-CFLAGS=-c -Wall
+CFLAGS=-c -Wall -std=c++11
 SOURCES=$(shell find src -name '*.cc')
 TESTS=$(shell find test -name '*.cc')
 SOURCE_OBJS=$(SOURCES:.cc=.o)

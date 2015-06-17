@@ -13,11 +13,9 @@ const int LONG_BITS = BITS_IN_BYTE * sizeof(unsigned long);
  *  num_bits: The number of bits in the array.
  */
 BitArray::BitArray(long num_bits) {
-  last_set_bit_ind = -1;
-  capacity = ceil((double) num_bits / LONG_BITS);
-  // TODO(smilli): check to make sure get memory
-  bits = (unsigned long*) checked_malloc(capacity * sizeof(unsigned long));
-  for (int i = 0; i < capacity; i++) {
+  arr_long_capacity = ceil((double) num_bits / LONG_BITS);
+  bits = (unsigned long*) checked_malloc(arr_long_capacity * sizeof(unsigned long));
+  for (int i = 0; i < arr_long_capacity; i++) {
     bits[i] = 0;
   }
 }
@@ -26,8 +24,25 @@ BitArray::~BitArray() {
   free(bits);
 }
 
-int BitArray::get_capacity() {
-  return capacity;
+/*
+ * Get number of longs array can currently store.
+ */
+long BitArray::long_capacity() {
+  return arr_long_capacity;
+}
+
+/*
+ * Get number of bits array can currently store.
+ */
+long BitArray::bit_capacity() {
+  return arr_long_capacity * LONG_BITS;
+}
+
+/*
+ * Get number of bits set in array.
+ */
+long BitArray::size() {
+  return last_set_bit_ind + 1;
 }
 
 /*
@@ -38,16 +53,14 @@ int BitArray::get_capacity() {
  *   n: The number of new bits to append.
  */
 void BitArray::append(long new_bits, int n) {
-  // TODO(smilli): Check to make sure it doesn't go out of bounds
-  // Should I make this indices ints or longs?  How big will it go?
   assert(n <= LONG_BITS);
   int long_ind = bit_ind_to_long_ind(last_set_bit_ind + 1);
-  int num_bits_set = 
+  int num_bits_set =
     (last_set_bit_ind < 0) ? 0 : bit_offset(last_set_bit_ind) + 1;
   int num_bits_left = LONG_BITS - num_bits_set;
   if (num_bits_left < n) {
     bits[long_ind] = bits[long_ind] | (new_bits >> (n - num_bits_left));
-    if (long_ind + 1 >= capacity) {
+    if (long_ind + 1 >= arr_long_capacity) {
       resize();
     }
     bits[long_ind + 1] = bits[long_ind + 1] | (
@@ -60,14 +73,13 @@ void BitArray::append(long new_bits, int n) {
 
 void BitArray::resize() {
   unsigned long* old_bits = bits;
-  int old_capacity = capacity;
-  capacity = old_capacity * 3 / 2;
-  // TODO(smilli): check to make sure get memory
-  bits = (unsigned long*) checked_malloc(capacity * sizeof(unsigned long));
+  int old_capacity = arr_long_capacity;
+  arr_long_capacity = old_capacity * 3 / 2;
+  bits = (unsigned long*) checked_malloc(arr_long_capacity * sizeof(unsigned long));
   for (int i = 0; i < old_capacity; i++) {
     bits[i] = old_bits[i];
   }
-  for (int i = old_capacity; i < capacity; i++) {
+  for (int i = old_capacity; i < arr_long_capacity; i++) {
     bits[i] = 0;
   }
   free(old_bits);
@@ -77,10 +89,9 @@ void BitArray::resize() {
  * Shrink the size of the array to only hold the bits that are currently set.
  */
 void BitArray::shrink_to_fit() {
-  // TODO(smilli): check to make sure works
   int size = bit_ind_to_long_ind(last_set_bit_ind) + 1;
   bits = (unsigned long*) checked_realloc(bits, size);
-  capacity = size;
+  arr_long_capacity = size;
 }
 
 /*
