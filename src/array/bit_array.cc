@@ -4,7 +4,7 @@
 #include "../util/memory.hh"
 
 const int BITS_IN_BYTE = 8;
-const int LONG_BITS = BITS_IN_BYTE * sizeof(unsigned long);
+const int LONG_BITS = BITS_IN_BYTE * sizeof(long);
 
 /*
  * Construct a BitArray.
@@ -14,7 +14,8 @@ const int LONG_BITS = BITS_IN_BYTE * sizeof(unsigned long);
  */
 BitArray::BitArray(long num_bits) {
   arr_long_capacity = ceil((double) num_bits / LONG_BITS);
-  bits = (unsigned long*) checked_malloc(arr_long_capacity * sizeof(unsigned long));
+  bits = (unsigned long*) checked_malloc(
+      arr_long_capacity * sizeof(unsigned long));
   for (int i = 0; i < arr_long_capacity; i++) {
     bits[i] = 0;
   }
@@ -52,24 +53,55 @@ long BitArray::size() {
  *   new_bits: The new bits.
  *   n: The number of new bits to append.
  */
-void BitArray::append(long new_bits, int n) {
+void BitArray::append(unsigned long new_bits, int n) {
   assert(n <= LONG_BITS);
   int long_ind = bit_ind_to_long_ind(last_set_bit_ind + 1);
+  if (long_ind >= arr_long_capacity) {
+    resize();
+  }
   int num_bits_set =
-    (last_set_bit_ind < 0) ? 0 : bit_offset(last_set_bit_ind) + 1;
+    (last_set_bit_ind < 0) ? 0 : bit_offset(last_set_bit_ind + 1);
   int num_bits_left = LONG_BITS - num_bits_set;
   if (num_bits_left < n) {
-    bits[long_ind] = bits[long_ind] | (new_bits >> (n - num_bits_left));
+    bits[long_ind] = set_bits_in_long(
+        bits[long_ind], new_bits, num_bits_set, num_bits_left);
     if (long_ind + 1 >= arr_long_capacity) {
       resize();
     }
-    bits[long_ind + 1] = bits[long_ind + 1] | (
-      new_bits << (LONG_BITS - (n - num_bits_left)));
+    bits[long_ind + 1] = set_bits_in_long(
+        bits[long_ind + 1], new_bits, 0, n - num_bits_left);
   } else if (num_bits_left >= n) {
-    bits[long_ind] = bits[long_ind] | (new_bits << (num_bits_left - n));
+    bits[long_ind] = set_bits_in_long(
+        bits[long_ind], new_bits, num_bits_set, n);
   }
   last_set_bit_ind += n;
 }
+
+/*
+ * Return a new long with a range of bits set.
+ *
+ * Params:
+ *  bits: The long to set bits in.
+ *  new_bits: The new bits to add.
+ *  start: The index of the bit in the long to start setting at.
+ *  n: Number of least sig bits to take from new_bits and set in bits.
+ */
+unsigned long BitArray::set_bits_in_long(
+    unsigned long bits, unsigned long new_bits, int start, int n) {
+  assert(start + n - 1 < LONG_BITS);
+  unsigned long start_mask = ((1 << start) - 1) << (LONG_BITS - start);
+  int num_bits_left_at_end = LONG_BITS - start - n;
+  unsigned long end_mask = (1 << num_bits_left_at_end) - 1;
+  unsigned long mask = start_mask + end_mask;
+  bits = (bits & mask) | (new_bits << (LONG_BITS - n  - start));
+  return bits;
+}
+
+/*
+ * 
+ */
+/*void BitArray::set(long new_bits, ) {
+}*/
 
 void BitArray::resize() {
   unsigned long* old_bits = bits;
@@ -116,15 +148,17 @@ int BitArray::bit_offset(long bit_ind) {
  *   n: The number of bits to get.
  */
 unsigned long BitArray::get(long i, int n) {
-  assert(n < LONG_BITS);
+  assert(n <= LONG_BITS);
   assert(i + n - 1 <= last_set_bit_ind);
   int long_ind = bit_ind_to_long_ind(i);
   int start_bit = bit_offset(i);
   int bits_past_start = LONG_BITS - start_bit;
   unsigned long ret = bits[long_ind];
   if (n <= bits_past_start) {
-    ret = ret >> (bits_past_start - n);
-    ret = ret & ((1 << n) - 1);
+    if (n < LONG_BITS) {
+      ret = ret >> (bits_past_start - n);
+      ret = ret & ((1 << n) - 1);
+    }
   } else {
     int num_bits_left = n - bits_past_start;
     ret = (ret & ((1 << bits_past_start) - 1)) << (num_bits_left);
