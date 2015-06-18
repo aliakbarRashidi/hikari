@@ -1,10 +1,11 @@
+#include <bitset>
 #include <math.h>
 #include <assert.h>
 #include "bit_array.hh"
 #include "../util/memory.hh"
 
-const int BITS_IN_BYTE = 8;
-const int LONG_BITS = BITS_IN_BYTE * sizeof(long);
+const unsigned int BITS_IN_BYTE = 8;
+const unsigned int LONG_BITS = BITS_IN_BYTE * sizeof(long);
 
 /*
  * Construct a BitArray.
@@ -66,7 +67,7 @@ void BitArray::append(unsigned long new_bits, int n) {
  *  start: The bit index to start in the array.
  *  n: Number of least sig bits to take form new_bits and set in array.
  */
-void BitArray::set(unsigned long new_bits, int start, int n) {
+void BitArray::set(unsigned long new_bits, unsigned int start, unsigned int n) {
   assert(n <= LONG_BITS);
   int long_ind = bit_ind_to_long_ind(start);
   if (long_ind >= arr_long_capacity) {
@@ -76,7 +77,7 @@ void BitArray::set(unsigned long new_bits, int start, int n) {
   int num_bits_left = LONG_BITS - num_bits_set;
   if (num_bits_left < n) {
     bits[long_ind] = set_bits_in_long(
-        bits[long_ind], new_bits, num_bits_set, num_bits_left);
+        bits[long_ind], new_bits >> (n - num_bits_left), num_bits_set, num_bits_left);
     if (long_ind + 1 >= arr_long_capacity) {
       resize();
     }
@@ -98,13 +99,16 @@ void BitArray::set(unsigned long new_bits, int start, int n) {
  *  n: Number of least sig bits to take from new_bits and set in bits.
  */
 unsigned long BitArray::set_bits_in_long(
-    unsigned long bits, unsigned long new_bits, int offset, int n) {
+    unsigned long bits, unsigned long new_bits, unsigned int offset, unsigned int n) {
   assert(offset + n - 1 < LONG_BITS);
-  unsigned long start_mask = ((1 << offset) - 1) << (LONG_BITS - offset);
-  int num_bits_left_at_end = LONG_BITS - offset - n;
-  unsigned long end_mask = (1 << num_bits_left_at_end) - 1;
-  unsigned long mask = start_mask + end_mask;
-  bits = (bits & mask) | (new_bits << (LONG_BITS - n  - offset));
+  unsigned long start_mask = (((unsigned long) 1 << offset) - 1) << (LONG_BITS - offset);
+  unsigned num_bits_left_at_end = LONG_BITS - offset - n;
+  unsigned long end_mask = ((unsigned long) 1 << num_bits_left_at_end) - 1;
+  std::bitset<LONG_BITS> mask = start_mask + end_mask;
+  unsigned long bits_mask = mask.to_ulong();
+  unsigned long new_bits_mask = mask.flip().to_ulong();
+  new_bits = (new_bits << (LONG_BITS - n - offset)) & new_bits_mask;
+  bits = (bits & bits_mask) | new_bits;
   return bits;
 }
 

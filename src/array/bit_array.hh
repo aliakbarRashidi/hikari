@@ -8,8 +8,9 @@ class BitArray {
     unsigned long* bits;
     int bit_ind_to_long_ind(long);
     int bit_offset(long);
-    void set(unsigned long, int, int);
-    unsigned long set_bits_in_long(unsigned long, unsigned long, int, int);
+    void set(unsigned long, unsigned int, unsigned int);
+    unsigned long set_bits_in_long(
+        unsigned long, unsigned long, unsigned int, unsigned int);
     void resize();
   public:
     BitArray (long);
