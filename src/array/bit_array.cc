@@ -159,10 +159,7 @@ int BitArray::bit_ind_to_long_ind(long bit_ind) {
  * Get index of bit within a long.
  */
 int BitArray::bit_offset(long bit_ind) {
-  // Check b/c last_set_bit_ind is less than 0 at start.
-  // Prob a better way to do this.
-  // TODO(smilli): I don't need this
-  return (bit_ind < 0) ? 0 : bit_ind % LONG_BITS;
+  return bit_ind % LONG_BITS;
 }
 
 /*
