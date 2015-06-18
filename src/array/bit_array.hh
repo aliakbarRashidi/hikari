@@ -18,6 +18,7 @@ class BitArray {
     long bit_capacity();
     long size();
     void append(unsigned long, int);
+    void swap(long, long, int);
     unsigned long get(long, int);
     void shrink_to_fit();
 };

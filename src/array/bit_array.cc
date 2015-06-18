@@ -99,7 +99,6 @@ void BitArray::set(unsigned long new_bits, int start, int n) {
  */
 unsigned long BitArray::set_bits_in_long(
     unsigned long bits, unsigned long new_bits, int offset, int n) {
-  // TODO(smilli): rename start to offset
   assert(offset + n - 1 < LONG_BITS);
   unsigned long start_mask = ((1 << offset) - 1) << (LONG_BITS - offset);
   int num_bits_left_at_end = LONG_BITS - offset - n;
@@ -108,6 +107,23 @@ unsigned long BitArray::set_bits_in_long(
   bits = (bits & mask) | (new_bits << (LONG_BITS - n  - offset));
   return bits;
 }
+
+/*
+ * Swaps n bits at index i and j.
+ *
+ * Params:
+ *  i: Bit index of first location.
+ *  j: Bit index of second location.
+ *  n: Nunber of bits to swap.
+ */
+void BitArray::swap(long i, long j, int n) {
+  assert(i + n  - 1 <= last_set_bit_ind && j + n - 1 <= last_set_bit_ind);
+  unsigned long i_val = get(i, n);
+  unsigned long j_val = get(j, n);
+  set(j_val, i, n);
+  set(i_val, j, n);
+}
+
 
 void BitArray::resize() {
   unsigned long* old_bits = bits;

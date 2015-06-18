@@ -57,3 +57,12 @@ TEST_CASE(
   bit_array.shrink_to_fit();
   REQUIRE(bit_array.long_capacity() == 3);
 }
+
+TEST_CASE("BitArray::swap swaps elements", "[bit_array]") {
+  BitArray bit_array (LONG_BITS * 3);
+  bit_array.append(138, 8);
+  bit_array.append(64, 8);
+  bit_array.swap(0, 8, 8);
+  REQUIRE(bit_array.get(0, 8) == 64);
+  REQUIRE(bit_array.get(8, 8) == 138);
+}
