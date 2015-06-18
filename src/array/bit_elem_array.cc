@@ -11,6 +11,7 @@
  *  num_elems: The number of elements to allocate space for.
  */
 BitElemArray::BitElemArray(int bits_per_elem, long num_elems) {
+  sorted = false;
   bits_in_elem = bits_per_elem;
   max_storable_num  = (1 << bits_per_elem) - 1;
   bit_array.reset(new BitArray(bits_in_elem * num_elems));
@@ -36,9 +37,10 @@ long BitElemArray::capacity() {
  * Params:
  *  element: The element to append.
  */
-void BitElemArray::append(long element) {
+void BitElemArray::append(unsigned long element) {
   assert(element <= max_storable_num);
   bit_array->append(element, bits_in_elem);
+  sorted = false;
 }
 
 /*
@@ -56,7 +58,7 @@ unsigned long BitElemArray::get(int i) {
  */
 void BitElemArray::swap(int i, int j) {
   bit_array->swap(
-    (long) i * bits_in_elem, (long) j * bits_in_elem, bits_in_elem); 
+    (long) i * bits_in_elem, (long) j * bits_in_elem, bits_in_elem);
 }
 
 /*
@@ -65,6 +67,7 @@ void BitElemArray::swap(int i, int j) {
 void BitElemArray::sort() {
   bit_array->shrink_to_fit();
   quicksort(0, size() - 1);
+  sorted = true;
 }
 
 void BitElemArray::quicksort(int lo, int hi) {
@@ -86,7 +89,7 @@ int BitElemArray::partition(int lo, int hi) {
       swap(i, new_pivot_ind);
       new_pivot_ind++;
     }
-  } 
+  }
   swap(new_pivot_ind, hi);
   return new_pivot_ind;
 }
@@ -100,4 +103,30 @@ int BitElemArray::partition(int lo, int hi) {
  */
 int BitElemArray::rand_in_range(int min, int max) {
   return min + (rand() % (max - min + 1));
+}
+
+/*
+ * Get first index that the element appears at.
+ */
+int BitElemArray::index_of(unsigned long elem) {
+  if (!(sorted)) {
+    sort();
+  }
+  return binary_search(elem, 0, size() - 1);
+}
+
+int BitElemArray::binary_search(unsigned long elem, int lo, int hi) {
+  if (hi - lo < 0) {
+    // Maybe throw an error instead
+    return -1;
+  }
+  int mid = (lo + hi) / 2;
+  unsigned long mid_elem = get(mid);
+  if (elem < mid_elem) {
+    return binary_search(elem, lo, mid - 1);
+  } else if (mid_elem == elem) {
+    return mid;
+  } else {
+    return binary_search(elem, mid + 1, hi);
+  }
 }

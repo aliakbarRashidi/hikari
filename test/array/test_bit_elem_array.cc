@@ -18,7 +18,7 @@ TEST_CASE("BitElemArray can append and get elements", "[bit_elem_array]") {
   REQUIRE(bit_elem_array.get(0) == 458);
 }
 
-TEST_CASE("BitElemArray::swap swaps elements", "[bit_elem_array]") {
+TEST_CASE("BitElemArray::swap", "[bit_elem_array]") {
   BitElemArray bit_elem_array(26, 14);
   bit_elem_array.append(41840);
   bit_elem_array.append(31804);
@@ -32,7 +32,7 @@ TEST_CASE("BitElemArray::swap swaps elements", "[bit_elem_array]") {
   REQUIRE(bit_elem_array.get(2) == 31804);
 }
 
-TEST_CASE("BitElemArray::sort sorts elements", "[bit_elem_array]") {
+TEST_CASE("BitElemArray::sort", "[bit_elem_array]") {
   BitElemArray bit_elem_array(18, 10);
   bit_elem_array.append(4108);
   bit_elem_array.append(14014);
@@ -46,4 +46,19 @@ TEST_CASE("BitElemArray::sort sorts elements", "[bit_elem_array]") {
   REQUIRE(bit_elem_array.get(2) == 5106);
   REQUIRE(bit_elem_array.get(3) == 9056);
   REQUIRE(bit_elem_array.get(4) == 14014);
+}
+
+TEST_CASE("BitElemArray::index_of", "[bit_elem_array]") {
+  BitElemArray bit_elem_array(18, 10);
+  bit_elem_array.append(4108);
+  bit_elem_array.append(14014);
+  bit_elem_array.append(5106);
+  bit_elem_array.append(3104);
+  bit_elem_array.append(9056);
+  bit_elem_array.sort();
+  REQUIRE(bit_elem_array.index_of(3104) == 0);
+  REQUIRE(bit_elem_array.index_of(4108) == 1);
+  REQUIRE(bit_elem_array.index_of(5106) == 2);
+  REQUIRE(bit_elem_array.index_of(9056) == 3);
+  REQUIRE(bit_elem_array.index_of(14014) == 4);
 }
